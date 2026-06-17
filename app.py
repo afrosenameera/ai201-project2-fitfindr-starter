@@ -32,19 +32,46 @@ def handle_query(user_query: str, wardrobe_choice: str) -> tuple[str, str, str]:
         A tuple of three strings:
             (listing_text, outfit_suggestion, fit_card)
         Each string maps to one of the three output panels in the UI.
-
-    TODO:
-        1. Guard against an empty query (return early with an error message).
-        2. Select the wardrobe based on wardrobe_choice.
-        3. Call run_agent() with the query and selected wardrobe.
-        4. If session["error"] is set, return the error in the first panel
-           and empty strings for the other two.
-        5. Otherwise, format session["selected_item"] into a readable listing_text
-           string and return it along with session["outfit_suggestion"] and
-           session["fit_card"].
     """
-    # TODO: implement this function
-    return "Agent not yet implemented.", "", ""
+    # 1. Guard against empty query
+    if not user_query or not user_query.strip():
+        return "Please enter a description of what you're looking for.", "", ""
+
+    # 2. Select wardrobe based on choice
+    if wardrobe_choice == "Empty wardrobe (new user)":
+        wardrobe = get_empty_wardrobe()
+    else:
+        wardrobe = get_example_wardrobe()
+
+    # 3. Call run_agent
+    session = run_agent(user_query, wardrobe)
+
+    # 4. If error with no item found, return error in first panel only
+    if session["error"] and not session["selected_item"]:
+        return session["error"], "", ""
+
+    # 5. Format selected_item into readable listing_text
+    item = session["selected_item"]
+    listing_text = "\n".join([
+        f"Title: {item.get('title', '?')}",
+        f"Price: ${item.get('price', '?')}",
+        f"Platform: {item.get('platform', '?')}",
+        f"Size: {item.get('size', '?')}",
+        f"Condition: {item.get('condition', '?')}",
+        f"Colors: {', '.join(item.get('colors', []))}",
+        f"Style tags: {', '.join(item.get('style_tags', []))}",
+        f"Brand: {item.get('brand', '?')}",
+        f"\n{item.get('description', '')}",
+    ])
+
+    if len(session["search_results"]) > 1:
+        others = ", ".join(r["title"] for r in session["search_results"][1:4])
+        listing_text += f"\n\nOther matches: {others}"
+
+    outfit_suggestion = session.get("outfit_suggestion") or ""
+    fit_card = session.get("fit_card") or ""
+
+    return listing_text, outfit_suggestion, fit_card
 
 
 # ── interface ─────────────────────────────────────────────────────────────────
