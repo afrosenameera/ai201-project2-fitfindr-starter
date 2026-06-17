@@ -1,3 +1,22 @@
+# FitFindr 👗
+
+A multi-tool AI agent that helps users find secondhand clothing and figure out how to style it. FitFindr takes a natural language query, searches a mock listings dataset, generates outfit suggestions based on the user's wardrobe, and produces a shareable social media caption — all in one flow.
+
+---
+
+## Setup
+
+```bash
+git clone <your-fork-url>
+cd ai201-project2-fitfindr-starter
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Create a `.env` file in the repo root:
+GROQ_API_KEY=your_key_here
+
 Run the app:
 ```bash
 python app.py
