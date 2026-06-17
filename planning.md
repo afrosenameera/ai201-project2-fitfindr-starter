@@ -100,51 +100,21 @@ The user never re-enters data between steps. selected_item flows from search_lis
 
 ## Architecture
 
-```text
-User query (natural language)
-         │
-         ▼
-  ┌─────────────────────────────────────────────────────────┐
-  │                    run_agent()                          │
-  │                 (Planning Loop)                         │
-  │                                                         │
-  │  session = {query, parsed, search_results,              │
-  │             selected_item, wardrobe,                    │
-  │             outfit_suggestion, fit_card, error}         │
-  └──────────────────────┬──────────────────────────────────┘
-                         │
-                         ▼
-              _parse_query(query)
-              → {description, size, max_price}
-              stored in session["parsed"]
-                         │
-                         ▼
-           search_listings(description, size, max_price)
-                         │
-              ┌──────────┴──────────┐
-              │ results == []        │ results != []
-              ▼                     ▼
-    session["error"] =    session["selected_item"] = results[0]
-    "No listings found…"            │
-    RETURN session ◄────────────────┤
-    (early exit)                    ▼
-                       suggest_outfit(selected_item, wardrobe)
-                                    │
-                         ┌──────────┴──────────┐
-                         │ error string          │ success
-                         ▼                     ▼
-               session["error"] = ... session["outfit_suggestion"] = outfit
-               RETURN session                   │
-               (early exit)                     ▼
-                               create_fit_card(outfit, selected_item)
-                                               │
-                                    ┌──────────┴──────────┐
-                                    │ error string          │ success
-                                    ▼                     ▼
-                          session["error"] = ... session["fit_card"] = card
-                          RETURN session          RETURN session (complete)
+```mermaid
+flowchart TD
+    A[User Query] --> B[run_agent: parse query]
+    B --> C[search_listings]
+    C --> D{Results found?}
+    D -- No --> E[Set error message\nRETURN early]
+    D -- Yes --> F[selected_item = results 0]
+    F --> G[suggest_outfit]
+    G --> H{Success?}
+    H -- No --> I[Set error message\nRETURN early]
+    H -- Yes --> J[outfit_suggestion = result]
+    J --> K[create_fit_card]
+    K --> L[fit_card = result]
+    L --> M[Return complete session]
 ```
-
 ## AI Tool Plan
 
 **Milestone 3 — Individual tool implementations:**
